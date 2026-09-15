@@ -1,0 +1,13 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+db/checkpoints.sqlite
+db/checkpoints.sqlite-*
+data/transcriptions/
+data/textbooks/
+data/_toc_tmp/
+
+# Chroma vectors are deliberately versioned so a deployment can start with
+# the already-ingested textbook chunks.
+!db/chroma/
