@@ -17,15 +17,15 @@ import streamlit as st
 
 from agent.graph import build_graph, run_agent
 
-st.set_page_config(page_title="Mon Tuteur", page_icon="🎓", layout="centered")
+st.set_page_config(page_title="Zizo's Study Buddy", page_icon="🎓", layout="centered")
 
 SUBJECTS = {
-    "math": "Mathématiques",
-    "phyique": "Physique",
-    "chimie": "Chimie",
-    "science": "Sciences",
-    "technique": "Technologie",
-    "frensh": "Français",
+    "math": "Mathematics",
+    "phyique": "Physics",
+    "chimie": "Chemistry",
+    "science": "Science",
+    "technique": "Technology",
+    "frensh": "French",
 }
 
 
@@ -37,12 +37,13 @@ def load_graph():
 
 # --- Sidebar: subject + quiz score + new conversation -------------------
 with st.sidebar:
-    st.title("🎓 Mon Tuteur")
-    subject_label = st.radio("Matière", list(SUBJECTS.values()),
+    st.title("🎓 Zizo's Study Buddy")
+    st.caption("Hi Zizo 👋 Ready to learn something new today?")
+    subject_label = st.radio("Subject", list(SUBJECTS.values()),
                              label_visibility="collapsed")
     subject = next(k for k, v in SUBJECTS.items() if v == subject_label)
 
-    if st.button("🔄 Nouvelle conversation", use_container_width=True):
+    if st.button("🔄 New conversation", use_container_width=True):
         st.session_state[f"thread_{subject}"] = str(uuid.uuid4())
         st.session_state.pop(f"history_{subject}", None)
         st.session_state.pop(f"last_{subject}", None)
@@ -51,12 +52,11 @@ with st.sidebar:
     last = st.session_state.get(f"last_{subject}")
     if last and (last["asked"] or last["score"]):
         st.divider()
-        st.metric("Questions posées", last["asked"])
-        st.metric("Bonnes réponses", last["score"])
+        st.metric("Questions answered", last["asked"])
+        st.metric("Correct answers", last["score"])
 
     st.divider()
-    st.caption("Tuteur pour 1ère année secondaire — "
-               "les réponses s'appuient sur ton manuel scolaire.")
+    st.caption("Your personal study buddy — answers are based on your course material.")
 
 # --- Thread state: one conversation per subject --------------------------
 if f"thread_{subject}" not in st.session_state:
@@ -74,21 +74,21 @@ for i, msg in enumerate(history):
     with st.chat_message("user" if msg["role"] == "user" else "assistant"):
         st.markdown(msg["content"])
         if msg["role"] == "assistant" and msg.get("sources"):
-            st.caption("📖 " + " · ".join(msg["sources"]))
+            st.caption("📖 Sources: " + " · ".join(msg["sources"]))
 
 # --- Input + agent turn ----------------------------------------------------
-if prompt := st.chat_input("Pose ta question..."):
+if prompt := st.chat_input("Ask anything about your lesson..."):
     history.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
     graph = load_graph()
     with st.chat_message("assistant"):
-        with st.spinner("Réflexion..."):
+        with st.spinner("Thinking..."):
             result = run_agent(graph, prompt, subject, thread_id)
         st.markdown(result["reply"])
         if result["sources"]:
-            st.caption("📖 " + " · ".join(result["sources"]))
+            st.caption("📖 Sources: " + " · ".join(result["sources"]))
 
     history.append({"role": "assistant", "content": result["reply"],
                     "sources": result["sources"]})
